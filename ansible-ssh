@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Author: Bartłomiej Kałuża
+# Version:
+# ========
+VERSION=0.1
+
+if ! [ -x "$(command -v yq)" ]; then
+  echo 'Error: yq is not installed.' >&2
+  exit 1
+fi
+
+if ! [ -e "$1" ]; then
+  echo 'Error: you must provide inventory file name and it must be readable.' >&2
+  exit 1
+fi
+
+if [ -z "$2" ]; then
+  echo 'Error: you must select host to connect to.' >&2
+  exit 1
+fi
+
+if [ "$(yq r "$1" all.hosts."$2")" = "null" ]; then
+  echo 'Error: no such host in inventory file.' >&2
+  exit 1
+fi
+
+USER=$(yq r $1 all.hosts.$2.ansible_user)
+
+if [ "$USER" = "null" ]; then
+  echo 'Error: Selected host does not have username specified.' >&2
+  exit 1
+fi
+
+HOST=$(yq r $1 all.hosts.$2.ansible_host)
+
+if [ "$HOST" = "null" ]; then
+  echo 'Error: Selected host does not have host setting specified.' >&2
+  exit 1
+fi
+
+KEY=$(yq r $1 all.hosts.$2.ansible_ssh_private_key_file)
+
+if [ "$KEY" = "null" ]; then
+  echo 'No ssh key provided in inventory, will prompt for password'
+  ssh $USER@$HOST
+  exit $?
+fi
+
+ssh -i $KEY $USER@$HOST
