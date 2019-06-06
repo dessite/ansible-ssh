@@ -35,7 +35,7 @@ ansible-ssh inventory.yml host1
 Will use configured SSH key
 
 ```
-ansible-ssh inventory.yml host1
+ansible-ssh inventory.yml host2
 ```
 Will prompt for password if host allows
 
